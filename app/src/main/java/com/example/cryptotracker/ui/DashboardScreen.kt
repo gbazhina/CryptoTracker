@@ -26,10 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cryptotracker.data.Coin
+import com.example.cryptotracker.data.Trend
 import com.example.cryptotracker.data.portfolioBalance
 import com.example.cryptotracker.data.sampleCoins
 import com.example.cryptotracker.ui.theme.CryptoTrackerTheme
@@ -40,10 +43,12 @@ enum class Period(val label: String) { DAY("24ч"), WEEK("7д") }
 @Composable
 fun DashboardScreen(
     coins: List<Coin>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trends: Map<String, Trend> = emptyMap()
 ) {
     var period by remember { mutableStateOf(Period.DAY) }
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
 
     // React: <ul>{coins.map(c => <CoinCard key={c.id} />)}</ul>,
     // но с виртуализацией из коробки, как react-window
@@ -59,9 +64,20 @@ fun DashboardScreen(
                 onPeriodChange = { period = it }
             )
         }
+        // Условие бесплатного API CoinGecko: заметная подпись-ссылка рядом с данными
+        item {
+            Text(
+                "Данные предоставлены CoinGecko",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                textDecoration = TextDecoration.Underline,
+                modifier = Modifier.clickable { uriHandler.openUri("https://www.coingecko.com/") }
+            )
+        }
         items(coins, key = { it.id }) { coin ->
             CoinCard(
                 coin = coin,
+                trend = trends[coin.id] ?: Trend.FLAT,
                 change = if (period == Period.DAY) coin.change24h else coin.change7d,
                 onClick = {
                     Toast.makeText(context, coin.name, Toast.LENGTH_SHORT).show()

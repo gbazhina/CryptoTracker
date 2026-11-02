@@ -8,12 +8,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.example.cryptotracker.data.sampleCoins
-import com.example.cryptotracker.ui.DashboardScreen
+import com.example.cryptotracker.ui.CryptoApp
 import com.example.cryptotracker.ui.theme.CryptoTrackerTheme
 
-// Урок 2: вместо счётчика из урока 1 показываем Dashboard.
-// Аналог: createRoot(...).render(<Dashboard coins={mockCoins} />)
+// Урок 3: данные приходят из сети. Загрузка, ошибка и список — внутри CryptoApp.
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,10 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             CryptoTrackerTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    DashboardScreen(
-                        coins = sampleCoins,
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    CryptoApp(modifier = Modifier.padding(innerPadding))
                 }
             }
         }

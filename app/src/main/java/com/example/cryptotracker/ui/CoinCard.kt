@@ -1,5 +1,7 @@
 package com.example.cryptotracker.ui
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +17,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,20 +26,40 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.cryptotracker.data.Coin
+import com.example.cryptotracker.data.Trend
 import com.example.cryptotracker.data.sampleCoins
 import com.example.cryptotracker.ui.theme.CryptoTrackerTheme
 
 val TrendUp = Color(0xFF16A34A)   // зелёный
 val TrendDown = Color(0xFFDC2626) // красный
 
-// React: function CoinCard({ coin, change, onClick }) { ... }
+// React: function CoinCard({ coin, change, trend, onClick }) { ... }
 @Composable
 fun CoinCard(
     coin: Coin,
     change: Double,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    trend: Trend = Trend.FLAT
 ) {
+    // CSS: .change { transition: color 600ms }
+    // Цвет вычисляется из данных, а плавный переход Compose делает сам.
+    val changeColor by animateColorAsState(
+        targetValue = if (change >= 0) TrendUp else TrendDown,
+        animationSpec = tween(durationMillis = 600),
+        label = "changeColor"
+    )
+    // Цена подсвечивается, куда она сдвинулась с прошлого обновления
+    val priceColor by animateColorAsState(
+        targetValue = when (trend) {
+            Trend.UP -> TrendUp
+            Trend.DOWN -> TrendDown
+            Trend.FLAT -> MaterialTheme.colorScheme.onSurface
+        },
+        animationSpec = tween(durationMillis = 600),
+        label = "priceColor"
+    )
+
     // Card(onClick = ...) сам даёт Ripple — волну от точки касания. CSS не нужен.
     Card(
         onClick = onClick,
@@ -66,11 +89,15 @@ fun CoinCard(
 
             // text-align: right
             Column(horizontalAlignment = Alignment.End) {
-                Text(formatPrice(coin.price), fontWeight = FontWeight.SemiBold)
+                Text(
+                    formatPrice(coin.price),
+                    fontWeight = FontWeight.SemiBold,
+                    color = priceColor
+                )
                 Text(
                     formatChange(change),
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (change >= 0) TrendUp else TrendDown
+                    color = changeColor
                 )
             }
         }
